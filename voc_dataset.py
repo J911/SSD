@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import torch
 import torch.utils.data as data
 import xml.etree.ElementTree as ET
