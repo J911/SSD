@@ -37,6 +37,8 @@ def adjust_learning_rate(optimizer, gamma, step):
 
 if __name__ == '__main__':
 
+    best_loss = 999
+
     print_config('config.py')
     print('now runing on device : ', device)
 
@@ -54,15 +56,15 @@ if __name__ == '__main__':
 
      
     model.to(device)
-    model.train()
-
     mb = MultiBoxEncoder(opt)
         
     # image_sets = [['2007', 'trainval'], ['2012', 'trainval']]
     # dataset = VOCDetection(opt, image_sets=image_sets, is_train=True)
     dataset = CustomDetection(opt, root='/DATA', dbtype='train')
+    val_dataset = CustomDetection(opt, root='/DATA', dbtype='val')
     
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size, collate_fn=detection_collate, num_workers=4)
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=opt.batch_size, collate_fn=detection_collate, num_workers=4)
 
     criterion = MultiBoxLoss(opt.num_classes, opt.neg_radio).to(device)
 
@@ -76,6 +78,8 @@ if __name__ == '__main__':
         total_loc_loss = 0
         total_cls_loss = 0
         total_loss = 0
+        
+        model.train()
         for i , (img, boxes) in enumerate(dataloader):
             img = img.to(device)
             gt_boxes = []
@@ -110,10 +114,51 @@ if __name__ == '__main__':
                 avg_loc = total_loc_loss / (i+1)
                 avg_cls = total_cls_loss / (i+1)
                 avg_loss = total_loss / (i+1)
+                print('train:')
                 print('epoch[{}] | batch_idx[{}] | loc_loss [{:.2f}] | cls_loss [{:.2f}] | avg_loss [{:.2f}]'.format(e, i, avg_loc, avg_cls, avg_loss))
 
-        if (e+1) % 10 == 0:
-            torch.save(model.state_dict(), os.path.join(opt.save_folder, 'loss-{:.2f}.pth'.format(total_loss)))
+        total_val_loc_loss = 0
+        total_val_cls_loss = 0
+        total_val_loss = 0
+        model.eval()
+        for i , (img, boxes) in enumerate(val_dataloader)
+            img = img.to(device)
+            gt_boxes = []
+            gt_labels = []
+            for box in boxes:
+                labels = box[:, 4]
+                box = box[:, :-1]
+                match_loc, match_label = mb.encode(box, labels)
+            
+                gt_boxes.append(match_loc)
+                gt_labels.append(match_label)
+            
+            gt_boxes = torch.FloatTensor(gt_boxes).to(device)
+            gt_labels = torch.LongTensor(gt_labels).to(device)
 
 
+            p_loc, p_label = model(img)
 
+
+            loc_loss, cls_loss = criterion(p_loc, p_label, gt_boxes, gt_labels)
+
+            loss = loc_loss + cls_loss
+
+            optimizer.zero_grad()
+
+            total_val_loc_loss += loc_loss.item()
+            total_val_cls_loss += cls_loss.item()
+            total_val_loss += loss.item()
+
+            if i % opt.log_fn == 0:
+                avg_loc = total_val_loc_loss / (i+1)
+                avg_cls = total_val_cls_loss / (i+1)
+                avg_loss = total_val_loss / (i+1)
+                print('val:')
+                print('epoch[{}] | batch_idx[{}] | loc_loss [{:.2f}] | cls_loss [{:.2f}] | avg_loss [{:.2f}]'.format(e, i, avg_loc, avg_cls, avg_loss))
+
+            if best_loss > total_val_loss:
+                best_loss = total_val_loss
+                torch.save(model.state_dict(), os.path.join(opt.save_folder, 'loss-{:.2f}.pth'.format(total_loss)))
+
+            print('best loss: ', best_loss)
