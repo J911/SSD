@@ -1,7 +1,3 @@
-
-
-
-
 from config import opt
 import numpy as np
 from lib.model import SSD
@@ -14,6 +10,7 @@ from lib.multibox_encoder import MultiBoxEncoder
 from lib.ssd_loss import MultiBoxLoss
 
 from voc_dataset import VOCDetection
+from custom_dataset import CustomDetection
 
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -61,8 +58,10 @@ if __name__ == '__main__':
 
     mb = MultiBoxEncoder(opt)
         
-    image_sets = [['2007', 'trainval'], ['2012', 'trainval']]
-    dataset = VOCDetection(opt, image_sets=image_sets, is_train=True)
+    # image_sets = [['2007', 'trainval'], ['2012', 'trainval']]
+    # dataset = VOCDetection(opt, image_sets=image_sets, is_train=True)
+    dataset = CustomDetection(opt, root='/DATA', dbtype='train')
+    
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size, collate_fn=detection_collate, num_workers=4)
 
     criterion = MultiBoxLoss(opt.num_classes, opt.neg_radio).to(device)
