@@ -51,7 +51,8 @@ class Config:
     #ssd中的一些参数,以下参数是基于论文给出的，谨慎修改！！
     
     #输入图片的大小
-    min_size = 300
+    # min_size = 300
+    min_size = 240
     #ssd中共有6个特征层,它们的大小依次如下，用于anchor的生成
     grids = (38, 19, 10, 5, 3, 1)
     #每个特征层anchor进行缩放的比例
