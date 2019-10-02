@@ -150,5 +150,5 @@ def preproc_for_train(image, boxes, labels, insize, mean):
     boxes = boxes.copy()
     boxes[:, 0::2] /= width
     boxes[:, 1::2] /= height
-
+    
     return image, boxes, labels

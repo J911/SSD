@@ -60,8 +60,8 @@ if __name__ == '__main__':
         
     # image_sets = [['2007', 'trainval'], ['2012', 'trainval']]
     # dataset = VOCDetection(opt, image_sets=image_sets, is_train=True)
-    dataset = CustomDetection(opt, root='/DATA', dbtype='train')
-    val_dataset = CustomDetection(opt, root='/DATA', dbtype='val')
+    dataset = CustomDetection(root='/DATA', dbtype='train')
+    val_dataset = CustomDetection(root='/DATA', dbtype='val')
     
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size, collate_fn=detection_collate, num_workers=4)
     val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=opt.batch_size, collate_fn=detection_collate, num_workers=4)
@@ -121,7 +121,7 @@ if __name__ == '__main__':
         total_val_cls_loss = 0
         total_val_loss = 0
         model.eval()
-        for i , (img, boxes) in enumerate(val_dataloader)
+        for i , (img, boxes) in enumerate(val_dataloader):
             img = img.to(device)
             gt_boxes = []
             gt_labels = []
