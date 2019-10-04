@@ -1,14 +1,8 @@
-
-
-
-
-
 class Config:
 
 	
     VOC_ROOT = '/Users/liuhaoxin/data/VOC/VOCdevkit'
 
-    # num_classes = 21
     num_classes = 11
 
     resume = None
@@ -30,10 +24,7 @@ class Config:
 
     log_fn = 10 
 
-
     neg_radio = 3
-    
-
     
     min_size = 300
     
